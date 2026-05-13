@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Loading…</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+:root{
+  --bg:#0d0d0f;--bg-card:#131316;--bg-hover:#1a1a1f;
+  --border:#252529;--border-hi:#3a3a42;
+  --text:#e8e6e1;--text-soft:#9e9b94;--text-dim:#555250;
+  --accent:#e8c547;--accent-dim:#4a3f10;--accent2:#5ba0d0;
+  --red:#e05c5c;--green:#5bc97a;
+  --serif:'Noto Serif SC',serif;--mono:'JetBrains Mono',monospace;
+  --r:6px;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--serif);font-size:16px;line-height:1.7;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(232,197,71,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(232,197,71,.015) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
+
+/* LAYOUT */
+.shell{position:relative;z-index:1;display:grid;grid-template-columns:220px 1fr;min-height:100vh;max-width:1360px;margin:0 auto;}
+
+/* SIDEBAR */
+.sidebar{border-right:1px solid var(--border);padding:40px 24px 40px 28px;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;gap:32px;background:var(--bg-card);}
+.sidebar::-webkit-scrollbar{width:0}
+.brand-tag{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:4px;}
+.brand-name{font-family:var(--serif);font-size:20px;font-weight:700;color:var(--text);line-height:1.2;}
+.brand-sub{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:3px;}
+nav{display:flex;flex-direction:column;gap:1px;}
+.nav-sec{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);padding:0 10px;margin-bottom:4px;margin-top:4px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--r);font-family:var(--serif);font-size:13px;color:var(--text-soft);cursor:pointer;border:none;background:none;text-align:left;width:100%;transition:background .15s,color .15s;}
+.nav-btn:hover{background:var(--bg-hover);color:var(--text);}
+.nav-btn.active{background:var(--accent-dim);color:var(--accent);}
+.nav-icon{font-size:11px;width:14px;text-align:center;opacity:.7;}
+.nav-badge{margin-left:auto;font-family:var(--mono);font-size:9px;background:var(--bg-hover);border:1px solid var(--border);border-radius:10px;padding:1px 7px;color:var(--text-dim);}
+.sidebar-sep{height:1px;background:var(--border);}
+.sidebar-foot{margin-top:auto;padding-top:16px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:2px;}
+.foot-link{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;color:var(--text-dim);text-decoration:none;padding:5px 10px;border-radius:4px;transition:color .15s,background .15s;}
+.foot-link:hover{color:var(--accent);background:var(--bg-hover);}
+
+/* CONTENT */
+.content-area{display:flex;flex-direction:column;min-height:100vh;}
+.topbar{position:sticky;top:0;z-index:50;padding:16px 48px;border-bottom:1px solid var(--border);background:rgba(13,13,15,.88);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;}
+.topbar-title{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--text-soft);}
+.main{flex:1;padding:48px;}
+
+/* VIEWS */
+.view{display:none;animation:rise .25s ease;}
+.view.active{display:block;}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* STATE */
+.state-box{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:80px 0;font-family:var(--mono);font-size:12px;color:var(--text-dim);}
+.spinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* SECTION HEADER */
+.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+.sec-head-title{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-soft);white-space:nowrap;}
+.sec-head-line{flex:1;height:1px;background:var(--border);}
+.sec-head-count{font-family:var(--mono);font-size:9px;color:var(--text-dim);white-space:nowrap;}
+
+/* FEATURED */
+.featured{border:1px solid var(--border);border-radius:var(--r);padding:36px 40px;margin-bottom:40px;background:var(--bg-card);cursor:pointer;position:relative;overflow:hidden;transition:border-color .2s,box-shadow .2s;}
+.featured::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent);}
+.featured:hover{border-color:var(--border-hi);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.featured-label{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;}
+.featured-title{font-family:var(--serif);font-size:24px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:10px;}
+.featured-excerpt{font-size:14px;color:var(--text-soft);line-height:1.7;margin-bottom:20px;max-width:640px;}
+.featured-meta{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+
+/* POST GRID */
+.post-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+.post-card{border:1px solid var(--border);border-radius:var(--r);padding:24px;background:var(--bg-card);cursor:pointer;transition:all .2s;}
+.post-card:hover{border-color:var(--border-hi);background:var(--bg-hover);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.35);}
+.post-card-cat{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;}
+.post-card-title{font-family:var(--serif);font-size:15px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:8px;}
+.post-card-excerpt{font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:14px;}
+.post-card-meta{font-family:var(--mono);font-size:10px;color:var(--text-dim);display:flex;gap:10px;}
+
+/* CAT PILL */
+.cat-pill{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;border:1px solid;border-radius:3px;padding:2px 8px;}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:24px;}
+.search-ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:13px;pointer-events:none;}
+.search-input{width:100%;padding:12px 16px 12px 40px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg-card);font-family:var(--serif);font-size:14px;color:var(--text);outline:none;transition:border-color .15s;}
+.search-input:focus{border-color:var(--border-hi);}
+.search-input::placeholder{color:var(--text-dim);}
+
+/* CAT BAR */
+.cat-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px;}
+.cat-btn{font-family:var(--mono);font-size:10px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-soft);cursor:pointer;transition:all .15s;}
+.cat-btn:hover{border-color:var(--border-hi);color:var(--text);}
+.cat-btn.active{background:var(--accent);color:#000;border-color:var(--accent);font-weight:500;}
+
+/* ARCHIVE */
+.archive-item{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:20px;padding:16px 20px;margin-bottom:8px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg-card);cursor:pointer;transition:all .15s;}
+.archive-item:hover{border-color:var(--border-hi);background:var(--bg-hover);}
+.archive-item-title{font-family:var(--serif);font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.archive-item-excerpt{font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+.archive-item-meta{font-family:var(--mono);font-size:10px;color:var(--text-dim);text-align:right;white-space:nowrap;}
+
+/* ARTICLE */
+#articleView{max-width:740px;}
+.art-back{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--text-dim);cursor:pointer;margin-bottom:36px;transition:color .15s;}
+.art-back:hover{color:var(--accent);}
+.art-cat{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;}
+.art-title{font-family:var(--serif);font-size:32px;font-weight:700;color:var(--text);line-height:1.25;margin-bottom:16px;}
+.art-meta{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:10px;color:var(--text-dim);padding-bottom:24px;border-bottom:1px solid var(--border);}
+
+/* MARKDOWN */
+.md-body{font-size:16px;line-height:1.9;color:var(--text-soft);}
+.md-body h1,.md-body h2,.md-body h3{font-family:var(--serif);color:var(--text);font-weight:700;margin:2em 0 .8em;}
+.md-body h1{font-size:26px;}
+.md-body h2{font-size:20px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.md-body h3{font-size:16px;color:var(--text-soft);}
+.md-body p{margin-bottom:1.2em;}
+.md-body a{color:var(--accent2);text-decoration:underline;text-decoration-thickness:1px;}
+.md-body strong{color:var(--text);font-weight:600;}
+.md-body code{font-family:var(--mono);font-size:12px;background:#1e1e22;border:1px solid var(--border);border-radius:3px;padding:1px 6px;color:#e8c547;}
+.md-body pre{background:#111115;border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;overflow-x:auto;margin:1.5em 0;}
+.md-body pre code{background:none;border:none;padding:0;color:#c9c4b8;font-size:13px;}
+.md-body blockquote{border-left:3px solid var(--accent);padding:12px 20px;margin:1.5em 0;background:rgba(232,197,71,.05);border-radius:0 var(--r) var(--r) 0;font-style:italic;color:var(--text);}
+.md-body ul,.md-body ol{padding-left:24px;margin-bottom:1.2em;}
+.md-body li{margin-bottom:.4em;}
+.md-body hr{border:none;border-top:1px solid var(--border);margin:2em 0;}
+.md-body table{width:100%;border-collapse:collapse;margin:1.5em 0;font-size:14px;}
+.md-body th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;background:#1a1a1f;color:var(--text-soft);padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);}
+.md-body td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text-soft);}
+.md-body img{max-width:100%;border-radius:var(--r);margin:1em 0;}
+
+/* ABOUT */
+.about-grid{display:grid;grid-template-columns:1fr 260px;gap:56px;align-items:start;margin-bottom:56px;}
+.about-name{font-family:var(--serif);font-size:40px;font-weight:700;color:var(--text);line-height:1.1;margin-bottom:4px;}
+.about-role{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin-bottom:24px;}
+.about-bio{font-size:15px;line-height:1.85;color:var(--text-soft);margin-bottom:28px;max-width:560px;}
+.skill-cloud{display:flex;flex-wrap:wrap;gap:8px;}
+.skill-tag{font-family:var(--mono);font-size:10px;padding:4px 12px;border:1px solid var(--border);border-radius:3px;color:var(--text-soft);background:var(--bg-card);}
+.about-card{border:1px solid var(--border);border-radius:var(--r);padding:28px;background:var(--bg-card);text-align:center;}
+.avatar{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,var(--accent-dim),#1a1a1f);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px;overflow:hidden;}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.about-card-name{font-family:var(--serif);font-size:16px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.about-card-loc{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-bottom:18px;}
+.about-card-links{display:flex;flex-direction:column;gap:6px;}
+.about-link{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;color:var(--text-dim);text-decoration:none;padding:6px 10px;border-radius:4px;transition:all .15s;}
+.about-link:hover{background:var(--bg-hover);color:var(--accent);}
+.about-sec{margin-bottom:44px;}
+.about-sec-title{font-family:var(--serif);font-size:18px;font-weight:700;color:var(--text);margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+
+/* BUTTONS */
+.btn{font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:8px 16px;border-radius:var(--r);cursor:pointer;transition:all .15s;border:1px solid var(--border);background:var(--bg-card);color:var(--text-soft);}
+.btn:hover{border-color:var(--border-hi);color:var(--text);}
+.btn-accent{background:var(--accent);color:#000;border-color:var(--accent);font-weight:500;}
+.btn-accent:hover{background:#d4b03e;border-color:#d4b03e;}
+.btn-danger{background:transparent;color:var(--red);border-color:var(--red);}
+.btn-danger:hover{background:rgba(224,92,92,.1);}
+
+/* FORMS */
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.form-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-soft);}
+.form-input{padding:10px 14px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;outline:none;transition:border-color .15s;}
+.form-input:focus{border-color:var(--accent);}
+.form-hint{font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.5;}
+.form-hint a{color:var(--accent2);text-decoration:none;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg-card);border:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--text);padding:12px 20px;border-radius:var(--r);transform:translateY(60px);opacity:0;transition:all .3s;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.5);}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.ok{border-color:var(--green);color:var(--green);}
+.toast.err{border-color:var(--red);color:var(--red);}
+
+/* SETUP */
+.setup-screen{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;align-items:center;justify-content:center;}
+.setup-box{border:1px solid var(--border);border-radius:var(--r);padding:48px;width:480px;background:var(--bg-card);}
+.setup-logo{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px;}
+.setup-title{font-family:var(--serif);font-size:26px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.setup-sub{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-bottom:36px;line-height:1.7;}
+
+@media(max-width:860px){
+  .shell{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .main{padding:24px;}
+  .about-grid{grid-template-columns:1fr;}
+  .topbar{padding:14px 24px;}
+  .archive-item{grid-template-columns:1fr;}
+  .archive-item-meta{text-align:left;}
+}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div class="setup-screen" id="setupScreen" style="display:none">
+  <div class="setup-box">
+    <div class="setup-logo">blog · setup</div>
+    <div class="setup-title">初次配置</div>
+    <div class="setup-sub">填入你的 GitHub 仓库信息。<br/>配置只存在浏览器本地，不会上传任何地方。</div>
+    <div class="form-group">
+      <label class="form-label">GitHub 用户名</label>
+      <input class="form-input" id="cfgUser" placeholder="e.g. sueeploy"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">仓库名</label>
+      <input class="form-input" id="cfgRepo" placeholder="e.g. sueeploy.github.io"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">分支</label>
+      <input class="form-input" id="cfgBranch" value="main"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">GitHub Token（可选，解除 API 限速）</label>
+      <input class="form-input" id="cfgToken" type="password" placeholder="ghp_xxxxxxxx"/>
+      <span class="form-hint">前往 <a href="https://github.com/settings/tokens" target="_blank">GitHub → Settings → Tokens</a> 生成只读 token，勾选 <code>public_repo</code></span>
+    </div>
+    <div style="margin-top:24px">
+      <button class="btn btn-accent" onclick="saveConfig()" style="width:100%;padding:13px;font-size:11px">开始使用 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHELL -->
+<div class="shell" id="mainShell" style="display:none">
+  <aside class="sidebar">
+    <div>
+      <div class="brand-tag" id="sbTag">blog.dev</div>
+      <div class="brand-name" id="sbName">404.log</div>
+      <div class="brand-sub" id="sbSub">技术 · 思考 · 记录</div>
+    </div>
+    <nav>
+      <div class="nav-sec">导航</div>
+      <button class="nav-btn active" id="nav-home" onclick="goView('home',this)"><span class="nav-icon">◆</span>首页</button>
+      <button class="nav-btn" id="nav-about" onclick="goView('about',this)"><span class="nav-icon">○</span>关于我</button>
+      <button class="nav-btn" id="nav-archive" onclick="goView('archive',this)"><span class="nav-icon">≡</span>归档</button>
+    </nav>
+    <nav id="catNav"><div class="nav-sec">分类</div></nav>
+    <div class="sidebar-sep"></div>
+    <nav>
+      <div class="nav-sec">管理</div>
+      <button class="nav-btn" onclick="openSettings()"><span class="nav-icon">⚙</span>博客设置</button>
+      <button class="nav-btn" onclick="refreshPosts()"><span class="nav-icon">↻</span>刷新文章</button>
+    </nav>
+    <div class="sidebar-foot" id="sbFoot"></div>
+  </aside>
+
+  <div class="content-area">
+    <header class="topbar">
+      <div class="topbar-title" id="topTitle">首页</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="goView('archive',document.getElementById('nav-archive'))">归档</button>
+        <button class="btn btn-accent" onclick="openGuide()">✎ 写文章</button>
+      </div>
+    </header>
+    <main class="main">
+
+      <!-- HOME -->
+      <div class="view active" id="homeView">
+        <div id="homeFeatured"></div>
+        <div class="sec-head">
+          <span class="sec-head-title">近期文章</span>
+          <div class="sec-head-line"></div>
+          <span class="sec-head-count" id="homeCount"></span>
+        </div>
+        <div class="post-grid" id="homeGrid"></div>
+      </div>
+
+      <!-- ABOUT -->
+      <div class="view" id="aboutView">
+        <div class="about-grid" id="aboutGrid"></div>
+      </div>
+
+      <!-- ARCHIVE -->
+      <div class="view" id="archiveView">
+        <div class="search-wrap">
+          <span class="search-ico">⌕</span>
+          <input class="search-input" id="searchInput" placeholder="搜索标题 / 内容……" oninput="renderArchive()"/>
+        </div>
+        <div class="cat-bar" id="archiveCatBar"></div>
+        <div id="archiveList"></div>
+      </div>
+
+      <!-- ARTICLE -->
+      <div class="view" id="articleView" style="max-width:740px">
+        <div class="art-back" onclick="goBack()">← 返回</div>
+        <div class="art-cat" id="artCat"></div>
+        <h1 class="art-title" id="artTitle"></h1>
+        <div class="art-meta" id="artMeta"></div>
+        <div class="md-body" id="artBody" style="margin-top:32px"></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="view" id="settingsView">
+        <div style="max-width:700px">
+          <div class="sec-head" style="margin-bottom:36px">
+            <span class="sec-head-title">博客设置</span>
+            <div class="sec-head-line"></div>
+          </div>
+
+          <div class="about-sec">
+            <div class="about-sec-title">GitHub 仓库</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="form-group"><label class="form-label">用户名</label><input class="form-input" id="stUser"/></div>
+              <div class="form-group"><label class="form-label">仓库名</label><input class="form-input" id="stRepo"/></div>
+              <div class="form-group"><label class="form-label">分支</label><input class="form-input" id="stBranch"/></div>
+              <div class="form-group"><label class="form-label">GitHub Token</label><input class="form-input" id="stToken" type="password"/></div>
+            </div>
+          </div>
+
+          <div class="about-sec">
+            <div class="about-sec-title">站点信息</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="form-group"><label class="form-label">博客标题</label><input class="form-input" id="stSiteTitle"/></div>
+              <div class="form-group"><label class="form-label">副标题</label><input class="form-input" id="stSiteSub"/></div>
+            </div>
+          </div>
+
+          <div class="about-sec">
+            <div class="about-sec-title">个人简介</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="form-group"><label class="form-label">名字</label><input class="form-input" id="stPName"/></div>
+              <div class="form-group"><label class="form-label">职位 / 标签</label><input class="form-input" id="stPRole"/></div>
+              <div class="form-group"><label class="form-label">所在地</label><input class="form-input" id="stPLoc"/></div>
+              <div class="form-group"><label class="form-label">头像 URL（可留空用 emoji）</label><input class="form-input" id="stPAvatar" placeholder="https://…"/></div>
+              <div class="form-group"><label class="form-label">头像 Emoji（无头像URL时显示）</label><input class="form-input" id="stPEmoji" placeholder="🌿"/></div>
+            </div>
+            <div class="form-group"><label class="form-label">个人简介</label><textarea class="form-input" id="stPBio" rows="4" style="resize:vertical;line-height:1.6;font-family:var(--serif);font-size:14px"></textarea></div>
+            <div class="form-group"><label class="form-label">技能标签（逗号分隔）</label><input class="form-input" id="stPSkills"/></div>
+          </div>
+
+          <div class="about-sec">
+            <div class="about-sec-title">社交链接</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="form-group"><label class="form-label">GitHub URL</label><input class="form-input" id="stLGH" placeholder="https://github.com/…"/></div>
+              <div class="form-group"><label class="form-label">即刻 URL</label><input class="form-input" id="stLJK"/></div>
+              <div class="form-group"><label class="form-label">掘金 URL</label><input class="form-input" id="stLJJ"/></div>
+              <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="stLMail"/></div>
+            </div>
+          </div>
+
+          <div class="about-sec">
+            <div class="about-sec-title">文章分类 <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);font-weight:400">（ID 用于文章 front-matter 的 category 字段）</span></div>
+            <div id="catEditor" style="margin-bottom:12px"></div>
+            <button class="btn" onclick="addCatRow()" style="width:100%;padding:10px">＋ 添加分类</button>
+          </div>
+
+          <div style="display:flex;gap:10px;padding-top:20px;border-top:1px solid var(--border)">
+            <button class="btn btn-accent" onclick="saveSettings()" style="flex:1;padding:13px">保存设置</button>
+            <button class="btn" onclick="goView('home',document.getElementById('nav-home'))">取消</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- GUIDE -->
+      <div class="view" id="guideView" style="max-width:700px">
+        <div class="art-back" onclick="goBack()">← 返回</div>
+        <div class="sec-head" style="margin-bottom:36px">
+          <span class="sec-head-title">✎ 写新文章</span>
+          <div class="sec-head-line"></div>
+        </div>
+        <div class="about-sec">
+          <div class="about-sec-title">生成文章模板</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+            <div class="form-group"><label class="form-label">文章标题</label><input class="form-input" id="tplTitle" placeholder="我的新文章"/></div>
+            <div class="form-group"><label class="form-label">分类</label><select class="form-input" id="tplCat"></select></div>
+            <div class="form-group" style="grid-column:1/-1"><label class="form-label">摘要（一句话）</label><input class="form-input" id="tplExcerpt" placeholder="简短介绍"/></div>
+          </div>
+          <button class="btn btn-accent" onclick="genTemplate()" style="margin-bottom:20px">生成模板</button>
+          <div id="tplOutput" style="display:none">
+            <div class="form-group">
+              <label class="form-label" style="display:flex;justify-content:space-between;align-items:center">
+                <span>保存为 <code id="tplFilename" style="color:var(--accent);font-size:11px"></code></span>
+                <button class="btn" onclick="copyTemplate()" style="padding:4px 12px">复制</button>
+              </label>
+              <textarea class="form-input" id="tplContent" rows="14" readonly style="font-family:var(--mono);font-size:12px;resize:vertical;line-height:1.6"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="about-sec">
+          <div class="about-sec-title">发布步骤</div>
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <div style="font-family:var(--mono);font-size:10px;color:var(--accent);background:var(--accent-dim);border-radius:3px;padding:3px 10px;white-space:nowrap;margin-top:2px;min-width:32px;text-align:center">01</div>
+              <div><div style="font-family:var(--serif);font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">创建文件</div><div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);line-height:1.6">在本地仓库 <code style="color:var(--accent)">posts/</code> 目录新建 <code style="color:var(--accent)">.md</code> 文件，粘贴上方生成的模板</div></div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <div style="font-family:var(--mono);font-size:10px;color:var(--accent);background:var(--accent-dim);border-radius:3px;padding:3px 10px;white-space:nowrap;margin-top:2px;min-width:32px;text-align:center">02</div>
+              <div><div style="font-family:var(--serif);font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">写内容</div><div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);line-height:1.6">用你喜欢的编辑器写 Markdown（Typora、VS Code、Obsidian 都行）</div></div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <div style="font-family:var(--mono);font-size:10px;color:var(--accent);background:var(--accent-dim);border-radius:3px;padding:3px 10px;white-space:nowrap;margin-top:2px;min-width:32px;text-align:center">03</div>
+              <div><div style="font-family:var(--serif);font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">推送到 GitHub</div><code style="font-family:var(--mono);font-size:11px;color:var(--accent);line-height:1.8;display:block">git add posts/<br>git commit -m "new: 文章标题"<br>git push</code></div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <div style="font-family:var(--mono);font-size:10px;color:var(--accent);background:var(--accent-dim);border-radius:3px;padding:3px 10px;white-space:nowrap;margin-top:2px;min-width:32px;text-align:center">04</div>
+              <div><div style="font-family:var(--serif);font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">刷新博客</div><div style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">侧边栏「↻ 刷新文章」，新文章即刻出现</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ──────────────────────────────────────────
+//  STORAGE
+// ──────────────────────────────────────────
+const LS={get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
+
+let CFG=LS.get('blog_cfg')||null;
+let SITE=LS.get('blog_site')||null;
+let POSTS=[];
+let curView='home',prevView='home',catFilter='all';
+
+// ──────────────────────────────────────────
+//  BOOT
+// ──────────────────────────────────────────
+async function boot(){
+  if(!CFG||!CFG.user||!CFG.repo){show('setupScreen');return;}
+  show('mainShell');
+  if(SITE) applySite();
+  await loadAll();
+}
+function show(id){document.getElementById(id).style.display=id==='mainShell'?'grid':'flex';}
+
+async function loadAll(){
+  setLoading(true);
+  try{
+    const remote=await fetchJSON('config.json');
+    // merge: remote is base, local overrides win
+    SITE=deepMerge(remote,SITE||{});
+    LS.set('blog_site',SITE);
+    applySite();
+    await loadPosts();
+  }catch(e){
+    // if config.json not found, use stored SITE or defaults
+    if(!SITE) SITE=defaultSite();
+    LS.set('blog_site',SITE);
+    applySite();
+    await loadPosts().catch(()=>setLoading(false));
+  }
+}
+
+function defaultSite(){
+  return{site:{title:'My Blog',subtitle:''},profile:{name:'博主',role:'',location:'',bio:'',avatar:'',emoji:'🌿',skills:[],links:{}},categories:[{id:'tech',name:'技术',color:'#5ba0d0'},{id:'life',name:'生活',color:'#5bc97a'}]};
+}
+
+function deepMerge(base,over){
+  const r={...base};
+  for(const k in over){
+    if(over[k]&&typeof over[k]==='object'&&!Array.isArray(over[k]))
+      r[k]=deepMerge(base[k]||{},over[k]);
+    else if(over[k]!==undefined&&over[k]!==null&&over[k]!=='')
+      r[k]=over[k];
+  }
+  return r;
+}
+
+function setLoading(on){
+  if(on){
+    document.getElementById('homeFeatured').innerHTML='<div class="state-box"><div class="spinner"></div><span>加载中…</span></div>';
+    document.getElementById('homeGrid').innerHTML='';
+  }
+}
+
+// ──────────────────────────────────────────
+//  GITHUB API
+// ──────────────────────────────────────────
+function apiH(){const h={'Accept':'application/vnd.github.v3+json'};if(CFG.token)h['Authorization']=`token ${CFG.token}`;return h;}
+async function ghFetch(path){
+  const u=`https://api.github.com/repos/${CFG.user}/${CFG.repo}/contents/${path}?ref=${CFG.branch||'main'}`;
+  const r=await fetch(u,{headers:apiH()});
+  if(!r.ok)throw new Error(`${r.status}: ${path}`);
+  return r.json();
+}
+async function fetchJSON(path){
+  const d=await ghFetch(path);
+  const b=atob(d.content.replace(/\n/g,''));
+  return JSON.parse(b);
+}
+async function fetchText(path){
+  const d=await ghFetch(path);
+  const b=atob(d.content.replace(/\n/g,''));
+  try{return decodeURIComponent(escape(b))}catch{return b}
+}
+
+// ──────────────────────────────────────────
+//  POSTS
+// ──────────────────────────────────────────
+async function loadPosts(){
+  try{
+    const files=await ghFetch('posts');
+    const mds=files.filter(f=>f.name.endsWith('.md'));
+    const results=await Promise.allSettled(mds.map(f=>fetchText(f.path)));
+    POSTS=[];
+    results.forEach((r,i)=>{
+      if(r.status==='fulfilled'){const p=parsePost(r.value,mds[i].name);if(p)POSTS.push(p);}
+    });
+    POSTS.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    updateCounts();
+    renderHome();
+    renderArchive();
+  }catch(e){
+    document.getElementById('homeFeatured').innerHTML='';
+    document.getElementById('homeGrid').innerHTML=`<div class="state-box" style="color:var(--red)">⚠ 加载文章失败：${e.message}</div>`;
+  }
+}
+
+function parsePost(raw,filename){
+  let fm={},body=raw;
+  if(raw.startsWith('---')){
+    const end=raw.indexOf('---',3);
+    if(end!==-1){
+      raw.slice(3,end).trim().split('\n').forEach(line=>{
+        const i=line.indexOf(':');
+        if(i>0){const k=line.slice(0,i).trim(),v=line.slice(i+1).trim().replace(/^["']|["']$/g,'');fm[k]=v;}
+      });
+      body=raw.slice(end+3).trim();
+    }
+  }
+  if(!fm.title)return null;
+  return{
+    slug:filename.replace('.md',''),
+    title:fm.title,date:fm.date||'',
+    category:fm.category||'',
+    excerpt:fm.excerpt||body.replace(/[#*`>\-\[\]]/g,'').slice(0,100)+'…',
+    body,readTime:Math.max(1,Math.round(body.replace(/\s/g,'').length/300))+' min'
+  };
+}
+
+function catById(id){return(SITE?.categories||[]).find(c=>c.id===id)||{name:id||'未分类',color:'#888'};}
+
+function updateCounts(){
+  (SITE?.categories||[]).forEach(c=>{
+    const el=document.getElementById('cnt-'+c.id);
+    if(el)el.textContent=POSTS.filter(p=>p.category===c.id).length;
+  });
+}
+
+// ──────────────────────────────────────────
+//  APPLY SITE
+// ──────────────────────────────────────────
+function applySite(){
+  if(!SITE)return;
+  const s=SITE.site||{};
+  document.getElementById('sbTag').textContent=s.title||'blog';
+  document.getElementById('sbName').textContent=s.title||'My Blog';
+  document.getElementById('sbSub').textContent=s.subtitle||'';
+  document.title=s.title||'Blog';
+  renderCatNav();
+  renderSbFoot();
+}
+
+function renderCatNav(){
+  const nav=document.getElementById('catNav');
+  nav.innerHTML='<div class="nav-sec">分类</div>';
+  (SITE?.categories||[]).forEach(c=>{
+    const b=document.createElement('button');
+    b.className='nav-btn';b.setAttribute('data-cat',c.id);
+    b.innerHTML=`<span class="nav-icon" style="color:${c.color}">▸</span>${c.name}<span class="nav-badge" id="cnt-${c.id}">0</span>`;
+    b.onclick=()=>{catFilter=c.id;goView('archive',b);};
+    nav.appendChild(b);
+  });
+}
+
+function renderSbFoot(){
+  const l=SITE?.profile?.links||{};
+  const foot=document.getElementById('sbFoot');
+  foot.innerHTML='';
+  if(l.github)foot.innerHTML+=`<a class="foot-link" href="${l.github}" target="_blank">⊹ GitHub</a>`;
+  if(l.jike)  foot.innerHTML+=`<a class="foot-link" href="${l.jike}" target="_blank">✦ 即刻</a>`;
+  if(l.juejin)foot.innerHTML+=`<a class="foot-link" href="${l.juejin}" target="_blank">⊕ 掘金</a>`;
+  if(l.email) foot.innerHTML+=`<a class="foot-link" href="mailto:${l.email}">✉ 邮件</a>`;
+}
+
+// ──────────────────────────────────────────
+//  RENDER
+// ──────────────────────────────────────────
+function renderHome(){
+  const[top,...rest]=POSTS;
+  if(!top){
+    document.getElementById('homeFeatured').innerHTML='';
+    document.getElementById('homeGrid').innerHTML='<div class="state-box">还没有文章，先写一篇吧！</div>';
+    return;
+  }
+  const c=catById(top.category);
+  document.getElementById('homeFeatured').innerHTML=`
+    <div class="featured" onclick="openArticle('${top.slug}')">
+      <div class="featured-label">✦ 最新发布</div>
+      <div class="featured-title">${top.title}</div>
+      <div class="featured-excerpt">${top.excerpt}</div>
+      <div class="featured-meta">
+        <span class="cat-pill" style="color:${c.color};border-color:${c.color}30;background:${c.color}10">${c.name}</span>
+        <span>${top.date}</span><span>${top.readTime} read</span>
+      </div>
+    </div>`;
+  document.getElementById('homeCount').textContent=rest.length+' 篇';
+  document.getElementById('homeGrid').innerHTML=rest.map(p=>{
+    const cc=catById(p.category);
+    return`<div class="post-card" onclick="openArticle('${p.slug}')">
+      <div class="post-card-cat" style="color:${cc.color}">${cc.name}</div>
+      <div class="post-card-title">${p.title}</div>
+      <div class="post-card-excerpt">${p.excerpt}</div>
+      <div class="post-card-meta"><span>${p.date}</span><span>${p.readTime}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function renderArchive(){
+  const cats=SITE?.categories||[];
+  const bar=document.getElementById('archiveCatBar');
+  bar.innerHTML=`<button class="cat-btn ${catFilter==='all'?'active':''}" onclick="setCatFilter('all',this)">全部</button>`;
+  cats.forEach(c=>bar.innerHTML+=`<button class="cat-btn ${catFilter===c.id?'active':''}" onclick="setCatFilter('${c.id}',this)">${c.name}</button>`);
+
+  const q=(document.getElementById('searchInput')?.value||'').toLowerCase();
+  const filtered=POSTS.filter(p=>(catFilter==='all'||p.category===catFilter)&&(!q||p.title.toLowerCase().includes(q)||p.body.toLowerCase().includes(q)));
+  const list=document.getElementById('archiveList');
+  if(!filtered.length){list.innerHTML='<div class="state-box">没有找到相关文章</div>';return;}
+  list.innerHTML=filtered.map(p=>{
+    const c=catById(p.category);
+    return`<div class="archive-item" onclick="openArticle('${p.slug}')">
+      <span class="cat-pill" style="color:${c.color};border-color:${c.color}30;background:${c.color}10;white-space:nowrap">${c.name}</span>
+      <div><div class="archive-item-title">${p.title}</div><div class="archive-item-excerpt">${p.excerpt}</div></div>
+      <div class="archive-item-meta"><div>${p.date}</div><div>${p.readTime}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function setCatFilter(id,btn){
+  catFilter=id;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderArchive();
+}
+
+function renderAbout(){
+  const p=SITE?.profile||{};
+  const l=p.links||{};
+  const avatarInner=p.avatar?`<img src="${p.avatar}" alt="avatar"/>`:(p.emoji||'🌿');
+  document.getElementById('aboutGrid').innerHTML=`
+    <div>
+      <div class="about-name">${p.name||'博主'}</div>
+      <div class="about-role">${p.role||''}</div>
+      <div class="about-bio">${(p.bio||'').replace(/\n/g,'<br/>')}</div>
+      <div class="skill-cloud">${(p.skills||[]).map(s=>`<span class="skill-tag">${s}</span>`).join('')}</div>
+    </div>
+    <div>
+      <div class="about-card">
+        <div class="avatar">${avatarInner}</div>
+        <div class="about-card-name">${p.name||''}</div>
+        <div class="about-card-loc">📍 ${p.location||''}</div>
+        <div class="about-card-links">
+          ${l.github?`<a class="about-link" href="${l.github}" target="_blank">⊹ GitHub</a>`:''}
+          ${l.jike?`<a class="about-link" href="${l.jike}" target="_blank">✦ 即刻</a>`:''}
+          ${l.juejin?`<a class="about-link" href="${l.juejin}" target="_blank">⊕ 掘金</a>`:''}
+          ${l.email?`<a class="about-link" href="mailto:${l.email}">✉ 邮件联系</a>`:''}
+        </div>
+      </div>
+    </div>`;
+}
+
+function openArticle(slug){
+  const p=POSTS.find(x=>x.slug===slug);if(!p)return;
+  const c=catById(p.category);
+  const el=id=>document.getElementById(id);
+  el('artCat').textContent=c.name;el('artCat').style.color=c.color;
+  el('artTitle').textContent=p.title;
+  el('artMeta').innerHTML=`<span>${p.date}</span><span>·</span><span>${p.readTime} read</span>`;
+  el('artBody').innerHTML=marked.parse(p.body);
+  goView('article');
+}
+
+// ──────────────────────────────────────────
+//  SETTINGS
+// ──────────────────────────────────────────
+function openSettings(){
+  const s=SITE?.site||{},p=SITE?.profile||{},l=p.links||{};
+  const v=(id,val)=>{const e=document.getElementById(id);if(e)e.value=val||'';};
+  v('stUser',CFG?.user);v('stRepo',CFG?.repo);v('stBranch',CFG?.branch||'main');v('stToken',CFG?.token);
+  v('stSiteTitle',s.title);v('stSiteSub',s.subtitle);
+  v('stPName',p.name);v('stPRole',p.role);v('stPLoc',p.location);
+  v('stPAvatar',p.avatar);v('stPEmoji',p.emoji||'🌿');
+  v('stPBio',p.bio);v('stPSkills',(p.skills||[]).join(', '));
+  v('stLGH',l.github);v('stLJK',l.jike);v('stLJJ',l.juejin);v('stLMail',l.email);
+  renderCatEditor();
+  goView('settings');
+}
+
+function renderCatEditor(){
+  const cats=SITE?.categories||[];
+  document.getElementById('catEditor').innerHTML=cats.map((c,i)=>`
+    <div style="display:grid;grid-template-columns:1fr 1fr 72px 34px;gap:8px;margin-bottom:8px;align-items:center" id="catRow-${i}">
+      <input class="form-input" id="catName-${i}" value="${c.name}" placeholder="分类名" style="font-size:13px;padding:8px 10px"/>
+      <input class="form-input" id="catId-${i}" value="${c.id}" placeholder="ID(英文)" style="font-family:var(--mono);font-size:12px;padding:8px 10px"/>
+      <input type="color" id="catColor-${i}" value="${c.color}" style="height:38px;width:100%;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);cursor:pointer;padding:2px 4px"/>
+      <button class="btn btn-danger" onclick="removeCatRow(${i})" style="padding:8px;font-size:12px;height:38px">✕</button>
+    </div>`).join('');
+}
+
+function addCatRow(){
+  if(!SITE)return;
+  SITE.categories=SITE.categories||[];
+  SITE.categories.push({id:'new-'+Date.now().toString(36),name:'新分类',color:'#888888'});
+  renderCatEditor();
+}
+
+function removeCatRow(i){
+  if(!SITE)return;
+  SITE.categories.splice(i,1);
+  renderCatEditor();
+}
+
+function saveSettings(){
+  const g=id=>document.getElementById(id)?.value.trim()||'';
+  CFG={user:g('stUser'),repo:g('stRepo'),branch:g('stBranch')||'main',token:g('stToken')};
+  LS.set('blog_cfg',CFG);
+  // read cats from editor
+  const cats=[];let i=0;
+  while(document.getElementById('catRow-'+i)){
+    cats.push({id:g('catId-'+i),name:g('catName-'+i),color:document.getElementById('catColor-'+i).value});
+    i++;
+  }
+  if(!SITE)SITE=defaultSite();
+  SITE.site={title:g('stSiteTitle'),subtitle:g('stSiteSub')};
+  SITE.profile={
+    name:g('stPName'),role:g('stPRole'),location:g('stPLoc'),
+    avatar:g('stPAvatar'),emoji:g('stPEmoji')||'🌿',
+    bio:document.getElementById('stPBio').value.trim(),
+    skills:g('stPSkills').split(',').map(s=>s.trim()).filter(Boolean),
+    links:{github:g('stLGH'),jike:g('stLJK'),juejin:g('stLJJ'),email:g('stLMail')}
+  };
+  SITE.categories=cats;
+  LS.set('blog_site',SITE);
+  applySite();updateCounts();renderAbout();
+  toast('✓ 设置已保存','ok');
+  goView('home',document.getElementById('nav-home'));
+  toast('提示：如需让 config.json 也更新，将设置内容同步到仓库文件即可','');
+}
+
+// ──────────────────────────────────────────
+//  GUIDE / TEMPLATE
+// ──────────────────────────────────────────
+function openGuide(){
+  const sel=document.getElementById('tplCat');
+  sel.innerHTML=(SITE?.categories||[]).map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  document.getElementById('tplOutput').style.display='none';
+  goView('guide');
+}
+
+function genTemplate(){
+  const title=document.getElementById('tplTitle').value.trim()||'新文章';
+  const catId=document.getElementById('tplCat').value;
+  const excerpt=document.getElementById('tplExcerpt').value.trim();
+  const today=new Date().toISOString().split('T')[0];
+  const slug=title.replace(/[\u4e00-\u9fa5\s]+/g,'-').replace(/[^\w-]/g,'').replace(/-+/g,'-').replace(/^-|-$/g,'')||'post-'+today;
+  const tpl=`---\ntitle: ${title}\ndate: ${today}\ncategory: ${catId}\nexcerpt: ${excerpt||'文章摘要'}\n---\n\n# ${title}\n\n## 开始写作\n\n在这里写你的内容……\n\n\`\`\`go\n// 代码示例\nfunc main() {\n    fmt.Println("Hello, Blog!")\n}\n\`\`\`\n\n> 引用示例\n\n- 列表项 1\n- 列表项 2\n`;
+  document.getElementById('tplFilename').textContent=`posts/${slug}.md`;
+  document.getElementById('tplContent').value=tpl;
+  document.getElementById('tplOutput').style.display='block';
+}
+
+function copyTemplate(){
+  const el=document.getElementById('tplContent');el.select();
+  document.execCommand('copy');
+  toast('✓ 已复制到剪贴板','ok');
+}
+
+// ──────────────────────────────────────────
+//  SETUP SCREEN
+// ──────────────────────────────────────────
+function saveConfig(){
+  const user=document.getElementById('cfgUser').value.trim();
+  const repo=document.getElementById('cfgRepo').value.trim();
+  if(!user||!repo){toast('用户名和仓库名不能为空','err');return;}
+  CFG={user,repo,branch:document.getElementById('cfgBranch').value.trim()||'main',token:document.getElementById('cfgToken').value.trim()};
+  LS.set('blog_cfg',CFG);
+  document.getElementById('setupScreen').style.display='none';
+  document.getElementById('mainShell').style.display='grid';
+  loadAll();
+}
+
+// ──────────────────────────────────────────
+//  NAVIGATION
+// ──────────────────────────────────────────
+const viewTitles={home:'首页',about:'关于我',archive:'所有文章',article:'文章',settings:'博客设置',guide:'写文章'};
+
+function goView(name,btn){
+  if(name!=='article'&&name!=='guide')prevView=curView;
+  curView=name;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(name+'View').classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  else{const m={home:'nav-home',about:'nav-about',archive:'nav-archive'};if(m[name])document.getElementById(m[name])?.classList.add('active');}
+  document.getElementById('topTitle').textContent=viewTitles[name]||'';
+  if(name==='about')renderAbout();
+}
+
+function goBack(){goView(prevView);}
+
+function refreshPosts(){
+  toast('↻ 正在拉取最新文章…','');
+  loadPosts().then(()=>toast('✓ 文章已更新','ok')).catch(e=>toast('⚠ '+e.message,'err'));
+}
+
+// ──────────────────────────────────────────
+//  TOAST
+// ──────────────────────────────────────────
+let toastT;
+function toast(msg,type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='toast show'+(type?' '+type:'');
+  clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),3200);
+}
+
+// ──────────────────────────────────────────
+//  START
+// ──────────────────────────────────────────
+boot();
+</script>
+</body>
+</html>

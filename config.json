@@ -1,0 +1,28 @@
+{
+  "site": {
+    "title": "404.log",
+    "subtitle": "技术 · 思考 · 记录",
+    "description": "一个后端工程师的技术与生活笔记"
+  },
+  "profile": {
+    "name": "Sueeploy",
+    "avatar": "",
+    "role": "Backend Engineer · Shenzhen",
+    "bio": "在深圳南山工作的后端工程师，专注 Go / 分布式系统 / 安全平台。日常折腾 gRPC、Kafka、ClickHouse。业余研究八字命理，探索副业可能性，用文字记录技术之外的思考。",
+    "location": "深圳 · 南山区",
+    "links": {
+      "github": "https://github.com/yourusername",
+      "jike": "",
+      "juejin": "",
+      "email": "hello@example.com"
+    },
+    "skills": ["Go", "Python", "gRPC", "Kafka", "Kubernetes", "ClickHouse", "Lua", "Linux"]
+  },
+  "categories": [
+    { "id": "go", "name": "Go 开发", "color": "#00ADD8" },
+    { "id": "backend", "name": "后端架构", "color": "#1a4a7a" },
+    { "id": "tool", "name": "工具效率", "color": "#7B2D8B" },
+    { "id": "growth", "name": "个人成长", "color": "#2c6e49" },
+    { "id": "finance", "name": "副业理财", "color": "#8B6914" }
+  ]
+}
